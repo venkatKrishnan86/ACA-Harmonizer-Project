@@ -1,52 +1,40 @@
 import librosa
 import numpy as np
 
-BLOCK_SIZE = 2048
-HOP_SIZE = 128
-SAMPLE_RATE = 44100
-
 class Song:
     def __init__(
             self, 
             song_file_path, 
-            block_size = BLOCK_SIZE, 
-            hop_size = HOP_SIZE, 
-            sample_rate = SAMPLE_RATE
+            duration = None,
+            block_size = 2048, 
+            hop_size = 128, 
+            sample_rate = 44100
         ):
         self.song_file = song_file_path
         self.block_size = block_size
         self.hop_size = hop_size
         self.sample_rate = sample_rate
+        self.x, _ = librosa.load(song_file_path, duration = duration, sr=sample_rate)  
 
     def _block_audio(
-            self,
-            x,
-            block_size = BLOCK_SIZE, 
-            hop_size = HOP_SIZE, 
-            fs = SAMPLE_RATE
+            self
     ):
         """
-            Inputs -
-            x: Input audio numpy array of shape - (n_samples,)
-            block_size: Size of the block or number of samples per block (FFT size)
-            hop_size: Number of samples to be hopped for each block
-            fs: Sample Rate
-
             Returns:
             blocks_list: (numOfBlocks, blockSize)
             timeInSec: Start time index of each block; Shape - (numOfBlocks,)
         """
-        if x.shape[0] % hop_size == 0:
-            num_blocks = x.shape[0] // hop_size
+        if self.x.shape[0] % self.hop_size == 0:
+            num_blocks = self.x.shape[0] // self.hop_size
         else:
-            num_blocks = x.shape[0] // hop_size + 1
-        ret = np.zeros((num_blocks, block_size))
+            num_blocks = self.x.shape[0] // self.hop_size + 1
+        ret = np.zeros((num_blocks, self.block_size))
         time_in_sec = np.zeros(num_blocks)
         for i in range(num_blocks):
-            end_time = min(i * hop_size + block_size, x.shape[0])
-            dur = end_time - i * hop_size
-            ret[i][:dur] = x[i * hop_size : end_time]
-            time_in_sec[i] = i * hop_size / fs
+            end_time = min(i * self.hop_size + self.block_size, self.x.shape[0])
+            dur = end_time - i * self.hop_size
+            ret[i][:dur] = self.x[i * self.hop_size : end_time]
+            time_in_sec[i] = i * self.hop_size / self.sample_rate
         return ret, time_in_sec
 
 
@@ -74,8 +62,7 @@ class Song:
 
     def _get_f0_from_acf(
             self,
-            r, 
-            fs = SAMPLE_RATE
+            r
     ):
         """
             Inputs -
@@ -99,17 +86,11 @@ class Song:
             if r[i] > maxx:
                 maxx = r[i]
                 maxx_idx = i
-        freq = fs / maxx_idx
+        freq = self.sample_rate / maxx_idx
         return freq
 
-
-    @staticmethod
-    def track_pitch_acf(
-            self,
-            x, 
-            block_size = BLOCK_SIZE, 
-            hop_size = HOP_SIZE, 
-            fs = SAMPLE_RATE
+    def trackPitchACF(
+            self
     ):
         """
             Inputs -
@@ -123,28 +104,22 @@ class Song:
             timeInSec: Start time index of each block; Shape - (numOfBlocks,)
         """
         is_normalized = True
-        mat, time_in_sec = self._block_audio(x, block_size, hop_size, fs)
+        mat, time_in_sec = self._block_audio()
         f0_arr = np.zeros(time_in_sec.shape[0])
         for i in range(mat.shape[0]):
             acf = self._comp_acf(mat[i], is_normalized)
-            f0_arr[i] = self._get_f0_from_acf(acf, fs)
+            f0_arr[i] = self._get_f0_from_acf(acf)
         return f0_arr, time_in_sec
     
-    @staticmethod
     def getBeatsAndTempo(
-            audio_file = 'beatles.wav', 
-            duration = 30, 
-            sample_rate = SAMPLE_RATE, 
-            hop_size = HOP_SIZE//2
+            self
         ):
-        y, sr = librosa.load(audio_file, duration = duration, sr = sample_rate) # 30s audio
-        tempo2, _ = librosa.beat.beat_track(y = y, sr= sr, hop_length=hop_size, units="time")
+        tempo2, _ = librosa.beat.beat_track(y = self.x, sr= self.sample_rate, hop_length=self.hop_size, units="time")
         beats = np.arange(0,30,60/np.round(tempo2))
         return tempo2, beats
     
     @staticmethod
-    def convert_freq2midi(
-            self, 
+    def convertFreq2Midi(
             freq_in_hz
         ):
         fa = 440
