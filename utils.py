@@ -12,12 +12,12 @@ SAMPLE_RATE = 44100
 class Song:
     def __init__(
             self, 
-            song_file, 
+            song_file_path, 
             block_size = BLOCK_SIZE, 
             hop_size = HOP_SIZE, 
             sample_rate = SAMPLE_RATE
         ):
-        self.song_file = song_file
+        self.song_file = song_file_path
         self.block_size = block_size
         self.hop_size = hop_size
         self.sample_rate = sample_rate
