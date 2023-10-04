@@ -1,9 +1,5 @@
 import librosa
 import numpy as np
-import math
-import os
-from scipy.io import wavfile
-import matplotlib.pyplot as plt
 
 BLOCK_SIZE = 2048
 HOP_SIZE = 128
