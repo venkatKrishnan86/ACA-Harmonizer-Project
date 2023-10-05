@@ -1,5 +1,7 @@
 import librosa
 import numpy as np
+from tqdm import tqdm
+from joblib import Parallel, delayed
 
 class Song:
     def __init__(
@@ -40,24 +42,18 @@ class Song:
 
     def _comp_acf(
             self,
-            input_vector, 
+            inputVector, 
             is_normalized = True
     ):
         """
             Returns:
             r: Autocorrelation result; Shape - (Length of inputVector,)
         """
-        vec_len = input_vector.shape[0]
-        padded = np.zeros(vec_len * 2)
-        padded[:vec_len] = input_vector
-        res = np.zeros(vec_len)
-        # print(vec_len)
-        for i in range(vec_len):
-            res[i] = sum(input_vector * padded[i : i + vec_len])
-        if is_normalized:
-            res = res / sum(input_vector * input_vector)
-        # print(res.shape)
-        return res
+        if is_normalized and inputVector.any():
+            r = [np.correlate(inputVector[i:], inputVector[:-i], mode = 'valid')/np.linalg.norm(inputVector)**2 if i>0 else np.correlate(inputVector, inputVector, mode = 'valid')/np.linalg.norm(inputVector)**2 for i in range(len(inputVector))]
+        else:
+            r = [np.correlate(inputVector[i:], inputVector[:-i], mode = 'valid') if i>0 else np.correlate(inputVector, inputVector, mode = 'valid') for i in range(len(inputVector))]
+        return np.array(r)
 
 
     def _get_f0_from_acf(
@@ -72,22 +68,12 @@ class Song:
             Returns:
             freq: The frequency at which maximum autocorrelation value is achieved
         """
-        mini_idx = -1
-        for i in range(r.shape[0]):
-            if i+1 == r.shape[0]:
-                mini_idx = i
-                break
-            if r[i] < r[i+1]:
-                mini_idx = i
-                break
-        maxx = -10
-        maxx_idx = -1
-        for i in range(mini_idx, r.shape[0]):
-            if r[i] > maxx:
-                maxx = r[i]
-                maxx_idx = i
-        freq = self.sample_rate / maxx_idx
+        mini_idx = np.argmin(r)
+        freq = self.sample_rate / (mini_idx + np.argmax(r[mini_idx:]))
         return freq
+    
+    def _complete_parallel(self, mat, is_normalized = True):
+        return self._get_f0_from_acf(self._comp_acf(mat, is_normalized))
 
     def trackPitchACF(
             self
@@ -105,11 +91,10 @@ class Song:
         """
         is_normalized = True
         mat, time_in_sec = self._block_audio()
-        f0_arr = np.zeros(time_in_sec.shape[0])
-        for i in range(mat.shape[0]):
-            acf = self._comp_acf(mat[i], is_normalized)
-            f0_arr[i] = self._get_f0_from_acf(acf)
-        return f0_arr, time_in_sec
+
+        f0_arr = Parallel(n_jobs=10)(delayed(self._complete_parallel)(mat[i], is_normalized) for i in tqdm(range(mat.shape[0])))
+        
+        return np.array(f0_arr), time_in_sec
     
     def getBeatsAndTempo(
             self
