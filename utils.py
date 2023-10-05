@@ -2,12 +2,14 @@ import librosa
 import numpy as np
 from tqdm import tqdm
 from joblib import Parallel, delayed
+from scipy.ndimage import gaussian_filter1d
 
 class Song:
     def __init__(
             self, 
             song_file_path, 
-            duration = None,
+            start = None,
+            end = None,
             block_size = 2048, 
             hop_size = 128, 
             sample_rate = 44100
@@ -16,7 +18,8 @@ class Song:
         self.block_size = block_size
         self.hop_size = hop_size
         self.sample_rate = sample_rate
-        self.x, _ = librosa.load(song_file_path, duration = duration, sr=sample_rate)  
+        self.x, _ = librosa.load(song_file_path, duration = end, sr=sample_rate)
+        self.x = self.x[start*self.sample_rate:]
 
     def _block_audio(
             self
@@ -58,7 +61,9 @@ class Song:
 
     def _get_f0_from_acf(
             self,
-            r
+            r,
+            amp_cutoff = -5,
+            freq_max = 1000
     ):
         """
             Inputs -
@@ -69,14 +74,38 @@ class Song:
             freq: The frequency at which maximum autocorrelation value is achieved
         """
         mini_idx = np.argmin(r)
+        amp = 20*np.log10(max(r[mini_idx + np.argmax(r[mini_idx:])], 0))
         freq = self.sample_rate / (mini_idx + np.argmax(r[mini_idx:]))
-        return freq
+        if amp>amp_cutoff and freq < freq_max:
+            return self.sample_rate / (mini_idx + np.argmax(r[mini_idx:]))
+        else:
+            return 0
     
     def _complete_parallel(self, mat, is_normalized = True):
         return self._get_f0_from_acf(self._comp_acf(mat, is_normalized))
+    
+    def _fillGaps(self, f0):
+        count = 0
+        time = 25
+        value = 0
+        f0_new = f0
+        for i in range(len(f0)):
+            if(f0[i]==0):
+                count+=1
+            else:
+                if(count>=time):
+                    count = 0
+                else:
+                    f0_new[i-count:i] = np.ones(count)*value
+                    count = 0
+                    value = 0
+            if(i!=len(f0)-1 and f0[i+1]==0 and count==0):
+                value = f0[i]
+        return f0_new
 
     def trackPitchACF(
-            self
+            self,
+            gaussian_sigma = 1
     ):
         """
             Inputs -
@@ -92,9 +121,12 @@ class Song:
         is_normalized = True
         mat, time_in_sec = self._block_audio()
 
-        f0_arr = Parallel(n_jobs=10)(delayed(self._complete_parallel)(mat[i], is_normalized) for i in tqdm(range(mat.shape[0])))
-        
-        return np.array(f0_arr), time_in_sec
+        f0_arr = np.array(Parallel(n_jobs=10)(delayed(self._complete_parallel)(mat[i], is_normalized) for i in tqdm(range(mat.shape[0]))))
+        f0_arr = self._fillGaps(f0_arr) # fill gaps below 250 ms
+        f0_arr = gaussian_filter1d(f0_arr, gaussian_sigma) # gaussian smooth
+
+
+        return f0_arr, time_in_sec
     
     def getBeatsAndTempo(
             self
