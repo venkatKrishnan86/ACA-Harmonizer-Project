@@ -8,7 +8,7 @@ class Song:
     def __init__(
             self, 
             song_file_path, 
-            start = None,
+            start = 0,
             end = None,
             block_size = 2048, 
             hop_size = 128, 
