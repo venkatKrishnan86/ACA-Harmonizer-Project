@@ -1,5 +1,7 @@
 import librosa
 import numpy as np
+import torch
+from torch import nn 
 from tqdm import tqdm
 from joblib import Parallel, delayed
 from scipy.ndimage import gaussian_filter1d
@@ -155,3 +157,25 @@ class Song:
             else:
                 return 0
 
+class GRU(nn.Module):
+    def __init__(self, input_size = 12, hidden_size = 256, num_layers = 2, num_classes = 12, bidirectional = True) -> None:
+        super(GRU, self).__init__()
+        self.num_layers = num_layers
+        self.hidden_size = hidden_size
+        self.bidirectional = bidirectional
+        
+        self.gru = nn.GRU(input_size, hidden_size, num_layers, batch_first = True, bidirectional=bidirectional)
+        if(bidirectional):
+            self.fc = nn.Linear(hidden_size*2, num_classes)
+        else:
+            self.fc = nn.Linear(hidden_size, num_classes)
+
+    def forward(self, x):
+        if(self.bidirectional):
+            h0 = torch.zeros(2*self.num_layers, x.size(0), self.hidden_size)
+        else:
+            h0 = torch.zeros(self.num_layers, x.size(0), self.hidden_size)
+        out, _ = self.gru(x, h0)
+        out = out[:,-1,:] # Since we only want the output of the last cell
+        out = self.fc(out)
+        return(out)
