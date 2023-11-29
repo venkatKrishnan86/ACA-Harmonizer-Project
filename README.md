@@ -27,7 +27,7 @@ For example, in the following 2D array, the song begins with C major, changes to
 ### Training Details (Chord Detection)
 
 **During training:** <br>
-**Input:** hand made audio clips of chords in [Q] 12 instruments in all keys (see ./data folder) made using [Logic](https://www.apple.com/logic-pro/) <br>
+**Input:** hand made audio clips of chords in 15 instruments in all 12 keys for 4 chord qualities (see ./data folder) made using [Logic](https://www.apple.com/logic-pro/) a total of 15x12x4 = 720 clips <br>
 **Ground Truth:** labeled chord <br>
 
 **After training:** <br>
