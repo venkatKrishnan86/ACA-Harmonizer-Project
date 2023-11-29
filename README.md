@@ -36,6 +36,13 @@ For example, in the following 2D array, the song begins with C major, changes to
 
 ## Chordinator (Chord Prediction) - Model Details
 
+### Templates
+
+1. Major as M 0
+2. minor as m 1
+3. diminished as dim or 2
+4. augmented as aug or 3
+
 ### Training Details (Chord Prediction)
 
 **During training:** <br>
