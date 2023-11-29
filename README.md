@@ -34,7 +34,7 @@ For example, in the following 2D array, the song begins with C major, changes to
 
 **Note:** The detected chords supplement the [MusDB](https://github.com/sigsep/sigsep-mus-db) dataset with labeled chords in order to train the chord prediction model (chordinator).
 
-## Chordinator (Chord Prediction) - Model Details (training)
+## Chordinator (Chord Prediction) - Model Details
 
 ### Training Details (Chord Prediction)
 
