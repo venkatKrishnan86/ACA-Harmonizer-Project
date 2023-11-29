@@ -29,7 +29,7 @@ For example, in the following 2D array, the song begins with C major, changes to
 **Ground Truth:** labeled chord <br>
 
 **After training:** <br>
-**Input:** raw audio from [MusDB](https://github.com/sigsep/sigsep-mus-db) Dataset
+**Input:** raw audio from [MusDB](https://github.com/sigsep/sigsep-mus-db) Dataset <br>
 **Output:** detected chords and associated time stamps
 
 **Note:** The detected chords supplement the [MusDB](https://github.com/sigsep/sigsep-mus-db) dataset with labeled chords in order to train the chord prediction model (chordinator).
