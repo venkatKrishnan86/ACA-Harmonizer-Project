@@ -1,4 +1,4 @@
-# ACA-Harmonizer-Project
+w# ACA-Harmonizer-Project
 
 # Chordinator
 Chord Prediction Project
@@ -18,11 +18,20 @@ For example, in the following 2D array, the song begins with C major, changes to
 [0  5  15  20]<br>
 
 ## Set Up
+See models folder for the chord detection and chord prediction (Chordinator) models. [Q What else to put here?]
 
 ## Chord Detection - Model Details
 (used for generating data to augment the [MusDB](https://github.com/sigsep/sigsep-mus-db) dataset in order to train Chord Prediction Model) <br>
 
 ### Evaluation (Chord Detection)
+
+#### Accuracy Metric
+
+[Q report accuracy metric and how we calculated it]
+
+#### Human Evaluation
+
+[Q report whether the output makes sense to us the humans]
 
 ### Training Details (Chord Detection)
 
@@ -48,6 +57,14 @@ To predict chord accompaniment for the input melody, we use a cossine similarity
 4. augmented as *aug* or 3
 
 ### Evaluation (Chord Prediction)
+
+#### Accuracy Metric
+
+[Q report accuracy metric and how we calculated it]
+
+#### Human Evaluation
+
+[Q report whether the output makes sense to us the humans]
 
 ### Training Details (Chord Prediction)
 
