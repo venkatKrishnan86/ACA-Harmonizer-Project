@@ -1,4 +1,4 @@
-w# ACA-Harmonizer-Project
+# ACA-Harmonizer-Project
 
 # Chordinator
 Chord Prediction Project
