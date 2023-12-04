@@ -4,8 +4,8 @@ import librosa
 import torch
 import json
 import argparse
-from playsound import playsound
 from scipy.io.wavfile import write
+import os
 
 parser = argparse.ArgumentParser("chord_predictor")
 parser.add_argument("file_path")
@@ -31,4 +31,6 @@ for chord_freq, time in zip(chords[:-1], stack[1][1:]):
     chord_sound.extend(create_sine(chord_freq[0], time-prev_time) + create_sine(chord_freq[1], time-prev_time) + create_sine(chord_freq[2], time-prev_time))
     prev_time = time
 
+if not os.path.is_dir('./audios'):
+    os.mkdir('./audios')
 write('audios/sample.wav', 44100, np.array(chord_sound)*0.06+audio[:len(chord_sound)])
