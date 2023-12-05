@@ -1,22 +1,27 @@
+import flask
 from flask import Flask, request
 from flask_cors import CORS
-import model
 import json
+import pickle
+import subprocess
 # logging.basicConfig(level=logging.DEBUG)
 
 app = Flask(__name__)
 cors = CORS(app)
 
-@app.route("/audio_endpoint", methods=['POST'])
-def audio_endpoint():
+@app.route("/run_model", methods=['POST'])
+def run_model():
     uploaded_file = request.files['file']
     if uploaded_file.filename != '':
         uploaded_file.save('storage/' + uploaded_file.filename)
 
-    results = model.run_model('storage/' + uploaded_file.filename)
+    proc = subprocess.Popen(['python3', 'inference.py', 'web-app/storage/' + uploaded_file.filename], cwd='../')
+    proc.wait()
+    chord_array = pickle.load(open("../audios/timestamps.pickle", 'rb'))
+    return json.dumps(chord_array), "200"
 
-    print(results)
-
-    return json.dumps(results), "200"
+@app.route("/fetch_cached_audio", methods=['GET'])
+def fetch_cached_audio():
+    return flask.send_file('../audios/sample.wav'), "200"
 
 app.run(threaded=False)
