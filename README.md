@@ -7,6 +7,7 @@ Fall 2023 - Audio Content Analysis - Music Technology, Georgia Tech
 [Chordinator Web App](google.com)
 
 See /documentation/ folder for paper write up. 
+![alt text](https://github.com/venkatKrishnan86/ACA-Harmonizer-Project/blob/main/documentation/diagram.png?raw=true)
 
 ## Project Goal
 
