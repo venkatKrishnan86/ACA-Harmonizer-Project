@@ -4,12 +4,17 @@
 Chord Prediction Project
 Fall 2023 - Audio Content Analysis - Music Technology, Georgia Tech
 
+[Chordinator Web App](https://github.com/venkatKrishnan86/ACA-Harmonizer-Project)(TBA)
+
+See [documentation](https://github.com/venkatKrishnan86/ACA-Harmonizer-Project/tree/main/documentation) folder for paper write up. 
+![alt text](https://github.com/venkatKrishnan86/ACA-Harmonizer-Project/blob/main/documentation/diagram.jpg?raw=true)
+
 ## Project Goal
 
 Train a machine learning model to predict an accompaniment chord progression given an input melody. <br>
 
 **Input:** a melody (raw audio, any instrument) [Q file type requirement or fs requirement?] <br>
-**Output:** suggested chords (a 2D array of chords and their associated time stamps) [Q what format will our output be?] <br>
+**Output:** suggested chords (a 2D array of chords and their associated time stamps) <br>
 
 **Note:** 2D array output consists of predicted chord and the associated time stamp <br>
 
@@ -18,7 +23,14 @@ For example, in the following 2D array, the song begins with C major, changes to
 [0  5  15  20]<br>
 
 ## Set Up
-See models folder for the chord detection and chord prediction (Chordinator) models. [Q What else to put here?]
+Models can be found in [models folder](https://github.com/venkatKrishnan86/ACA-Harmonizer-Project/tree/main/models) for the chord detection and chord prediction (Chordinator) models.
+
+### Templates (Chord Prediction)
+
+1. Major as *M* 0
+2. minor as *m* 1
+3. diminished as *dim* or 2
+4. augmented as *aug* or 3
 
 ## Chord Detection - Model Details
 (used for generating data to augment the [MusDB](https://github.com/sigsep/sigsep-mus-db) dataset in order to train Chord Prediction Model) <br>
@@ -27,11 +39,7 @@ See models folder for the chord detection and chord prediction (Chordinator) mod
 
 #### Accuracy Metric
 
-[Q report accuracy metric and how we calculated it]
-
-#### Human Evaluation
-
-[Q report whether the output makes sense to us the humans]
+98.4% Reported Accuracy 
 
 ### Training Details (Chord Detection)
 
@@ -49,22 +57,15 @@ See models folder for the chord detection and chord prediction (Chordinator) mod
 
 To predict chord accompaniment for the input melody, we use a cossine similarity metric between the input chromagram and our defined chord templates.[Q]
 
-### Templates (Chord Prediction)
-
-1. Major as *M* 0
-2. minor as *m* 1
-3. diminished as *dim* or 2
-4. augmented as *aug* or 3
-
 ### Evaluation (Chord Prediction)
 
 #### Accuracy Metric
 
-[Q report accuracy metric and how we calculated it]
+66.04% Reported Accuracy 
 
 #### Human Evaluation
 
-[Q report whether the output makes sense to us the humans]
+See paper write up for more details. [documentation folder](https://github.com/venkatKrishnan86/ACA-Harmonizer-Project/tree/main/documentation)
 
 ### Training Details (Chord Prediction)
 
@@ -75,3 +76,6 @@ To predict chord accompaniment for the input melody, we use a cossine similarity
 **After training:** <br>
 **Input:** a melody (raw audio, any instrument) <br>
 **Output:** suggested (predicted) chords and associated time stamps <br>
+
+## Cleaning Algorithm
+The output from our models predicts a chord every 6 frames or about every ~.25 seconds. Occasionally there are small deviations in long sequences of the same chord, which we attribute to error. In order to combat this noisy output, we devised a cleaning algorithm to produce clean output. See paper write up for more details. [documentation folder](https://github.com/venkatKrishnan86/ACA-Harmonizer-Project/tree/main/documentation)
