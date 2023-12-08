@@ -76,3 +76,6 @@ See paper write up for more details. [documentation folder](https://github.com/v
 **After training:** <br>
 **Input:** a melody (raw audio, any instrument) <br>
 **Output:** suggested (predicted) chords and associated time stamps <br>
+
+## Cleaning Algorithm
+The output from our models predicts a chord every 6 frames or about every ~.25 seconds. Occasionally there are small deviations in long sequences of the same chord, which we attribute to error. In order to combat this noisy output, we devised a cleaning algorithm to produce clean output. See paper write up for more details. [documentation folder](https://github.com/venkatKrishnan86/ACA-Harmonizer-Project/tree/main/documentation)
