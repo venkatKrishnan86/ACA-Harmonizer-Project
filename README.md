@@ -4,12 +4,14 @@
 Chord Prediction Project
 Fall 2023 - Audio Content Analysis - Music Technology, Georgia Tech
 
+[Chordinator Web App](google.com)
+
 ## Project Goal
 
 Train a machine learning model to predict an accompaniment chord progression given an input melody. <br>
 
 **Input:** a melody (raw audio, any instrument) [Q file type requirement or fs requirement?] <br>
-**Output:** suggested chords (a 2D array of chords and their associated time stamps) [Q what format will our output be?] <br>
+**Output:** suggested chords (a 2D array of chords and their associated time stamps) <br>
 
 **Note:** 2D array output consists of predicted chord and the associated time stamp <br>
 
