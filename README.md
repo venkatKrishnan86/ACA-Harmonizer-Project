@@ -6,6 +6,8 @@ Fall 2023 - Audio Content Analysis - Music Technology, Georgia Tech
 
 [Chordinator Web App](google.com)
 
+See /documentation/ folder for paper write up. 
+
 ## Project Goal
 
 Train a machine learning model to predict an accompaniment chord progression given an input melody. <br>
