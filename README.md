@@ -23,7 +23,7 @@ For example, in the following 2D array, the song begins with C major, changes to
 [0  5  15  20]<br>
 
 ## Set Up
-See models folder for the chord detection and chord prediction (Chordinator) models. [Q What else to put here?]
+Models can be found in [models folder](https://github.com/venkatKrishnan86/ACA-Harmonizer-Project/tree/main/models) for the chord detection and chord prediction (Chordinator) models.
 
 ### Templates (Chord Prediction)
 
@@ -39,11 +39,7 @@ See models folder for the chord detection and chord prediction (Chordinator) mod
 
 #### Accuracy Metric
 
-[Q report accuracy metric and how we calculated it]
-
-#### Human Evaluation
-
-[Q report whether the output makes sense to us the humans]
+98.4% Reported Accuracy 
 
 ### Training Details (Chord Detection)
 
@@ -65,11 +61,11 @@ To predict chord accompaniment for the input melody, we use a cossine similarity
 
 #### Accuracy Metric
 
-[Q report accuracy metric and how we calculated it]
+66.04% Reported Accuracy 
 
 #### Human Evaluation
 
-[Q report whether the output makes sense to us the humans]
+See paper write up for more details. [documentation folder](https://github.com/venkatKrishnan86/ACA-Harmonizer-Project/tree/main/documentation)
 
 ### Training Details (Chord Prediction)
 
