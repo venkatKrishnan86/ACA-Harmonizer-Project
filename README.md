@@ -9,6 +9,21 @@ Fall 2023 - Audio Content Analysis - Music Technology, Georgia Tech
 See [documentation](https://github.com/venkatKrishnan86/ACA-Harmonizer-Project/tree/main/documentation) folder for paper write up. 
 ![alt text](https://github.com/venkatKrishnan86/ACA-Harmonizer-Project/blob/main/documentation/diagram.jpg?raw=true)
 
+
+## Web app and server setup
+
+### Run Flask Server
+cd ./web-app
+pip3 install -r requirements.txt
+python3 flask_server.py 
+
+### Run React app
+cd ./web-app/client
+npm install
+npm run start
+
+You should see a browser open up the webapp. If not, got to 'http://localhost:3000/' in your browser
+
 ## Project Goal
 
 Train a machine learning model to predict an accompaniment chord progression given an input melody. <br>
