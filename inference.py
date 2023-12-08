@@ -34,7 +34,9 @@ for chord_freq, time in zip(chords[:-1], stack[1][1:]):
 
 if not os.path.isdir('./audios'):
     os.mkdir('./audios')
-write('audios/sample.wav', 44100, np.array(chord_sound)*0.06+audio[:len(chord_sound)])
+mixed_audio = np.array(chord_sound)*0.06+audio[:len(chord_sound)]
+mixed_audio_16bit = np.int16(mixed_audio/np.max(np.abs(mixed_audio)) * 32767)
+write('audios/sample.wav', 44100, mixed_audio_16bit)
 pickle.dump(stack, open('audios/timestamps.pickle', 'wb'))
 
 print("Done!")
