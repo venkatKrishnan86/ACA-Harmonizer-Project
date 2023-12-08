@@ -22,6 +22,13 @@ For example, in the following 2D array, the song begins with C major, changes to
 ## Set Up
 See models folder for the chord detection and chord prediction (Chordinator) models. [Q What else to put here?]
 
+### Templates (Chord Prediction)
+
+1. Major as *M* 0
+2. minor as *m* 1
+3. diminished as *dim* or 2
+4. augmented as *aug* or 3
+
 ## Chord Detection - Model Details
 (used for generating data to augment the [MusDB](https://github.com/sigsep/sigsep-mus-db) dataset in order to train Chord Prediction Model) <br>
 
@@ -50,13 +57,6 @@ See models folder for the chord detection and chord prediction (Chordinator) mod
 ## Chordinator (Chord Prediction) - Model Details
 
 To predict chord accompaniment for the input melody, we use a cossine similarity metric between the input chromagram and our defined chord templates.[Q]
-
-### Templates (Chord Prediction)
-
-1. Major as *M* 0
-2. minor as *m* 1
-3. diminished as *dim* or 2
-4. augmented as *aug* or 3
 
 ### Evaluation (Chord Prediction)
 
