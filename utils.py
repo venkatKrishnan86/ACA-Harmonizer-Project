@@ -1,7 +1,8 @@
 import librosa
 import numpy as np
 import torch
-from torch import nn 
+from torch import nn
+from torch.utils.data import Dataset
 from tqdm import tqdm
 from joblib import Parallel, delayed
 from scipy.ndimage import gaussian_filter1d
@@ -184,6 +185,162 @@ class GRU(nn.Module):
         out = out[:,-1,:] # Since we only want the output of the last cell
         out = self.fc(out)
         return(out)
+    
+class MelChordDataset(Dataset):
+    def __init__(
+            self, 
+            data_location = "../../../../Music Technology/Datasets/musdb18hq/",
+            out_location = "../../../../Music Technology/Datasets/musdb18hq/",
+            frames_per_chord = 6,
+            train = True,
+            write_data = False
+        ):
+        super(MelChordDataset).__init__()
+        if write_data:
+            self._write_chords_and_audio(data_location, out_location, train)
+        self.frames_per_chord = frames_per_chord*10
+        vocals_y = []
+        vocals_chroma = []
+        chord_templates:dict = json.load(open('./chord_templates.json'))
+        act_chord_data = []
+        self.data_location= data_location+"chunks_vocal/"
+        self.out_location= out_location+"chunks_chord/"
+        if not train:
+            self.data_location = self.data_location[:-1]+"_test/"
+            self.out_location = self.out_location[:-1]+"_test/"
+
+        for i in range(len(os.listdir(self.data_location))): # 100
+            with open(self.out_location+"chord_"+str(i), "rb") as fp:
+                chord_data = pickle.load(fp)
+            act_chord_data.append(torch.Tensor(np.array([np.array(chord_templates[i]) for i in chord_data])))
+            vocals_y.append(librosa.load(self.data_location + 'vocal_'+str(i)+'.wav', sr=SR)[0])
+            vocals_chroma.append(torch.Tensor(librosa.feature.chroma_cens(y=vocals_y[-1], sr = SR, hop_length=HOP)).T)
+        
+        # act_chord_data[i]: Shape: (num_chords[i], 12)
+        # vocals_chroma[i]: Shape: (num_frames[i], 12)
+        # num_chords[i] = (num_frames[i] // frames_per_chord)
+
+        self.data = []
+        self._create_data(act_chord_data, vocals_chroma)
+    
+    def _create_data(self, chord_data, chroma_data):
+        for (chroma, chords) in zip(chroma_data, chord_data):
+            for i in range(0, chroma.shape[0]-self.frames_per_chord, self.frames_per_chord):
+                block_chroma = chroma[i:i+self.frames_per_chord,:]
+                block_chord = chords[i//self.frames_per_chord]
+                if(block_chroma.any()):
+                    self.data.append((block_chroma, block_chord))
+
+    def _write_chords_and_audio(
+            self, 
+            data_location, 
+            out_location, 
+            train = True
+        ):
+        if train:
+            data_location = data_location+"train/"
+        else:
+            data_location = data_location+"test/"
+        folders = os.listdir(data_location)
+        count = 0
+
+        for folder in folders:
+            if not os.path.isdir(data_location+folder):
+                continue
+            mixture_y, _ = librosa.load(data_location + '/' + folder + '/mixture.wav', sr=SR)
+            vocals_y, _ = librosa.load(data_location + '/' + folder + '/vocals.wav', sr=SR)
+            mixture_y = mixture_y/np.max(np.abs(mixture_y))
+            vocals_y = vocals_y/np.max(np.abs(vocals_y))
+
+            mixture_chroma = torch.Tensor(librosa.feature.chroma_cens(y=mixture_y, sr = SR, hop_length=HOP)).T
+            chunk_length = FRAMES
+            nchunks = mixture_chroma.shape[0] // chunk_length # no padding
+
+            if train:
+                if not os.path.isdir(out_location+'chunks_chord'):
+                    os.mkdir(out_location+'chunks_chord')
+                if not os.path.isdir(out_location+'chunks_vocal'):
+                    os.mkdir(out_location+'chunks_vocal')
+            else:
+                if not os.path.isdir(out_location+'chunks_chord_test/'):
+                    os.mkdir(out_location+'chunks_chord_test')
+                if not os.path.isdir(out_location+'chunks_vocal_test/'):
+                    os.mkdir(out_location+'chunks_vocal_test')
+
+            # Get chords from mixture chroma
+            chord_stack, time = MelChordDataset.prediction(chord_detector, mixture_chroma)
+            frame_num = np.array([int(i/((HOP/SR)*6)) for i in time])
+            chord_stack = np.array([frame_num, chord_stack]).T
+            chords = []
+            for prev, curr in zip(chord_stack[:-1], chord_stack[1:]):
+                frame_diff = int(curr[0]) - int(prev[0])
+                chords.extend([prev[1] for _ in range(frame_diff)])
+            chords.extend([chord_stack[-1][1] for _ in range(nchunks - len(chords))])
+
+            if train:
+                with open(out_location+"chunks_chord/chord_"+str(count), "wb") as fp:
+                    pickle.dump(chords, fp)
+                sf.write(out_location + 'chunks_vocal/vocal_' + str(count)+'.wav', vocals_y, SR)
+            else:
+                with open(out_location+"chunks_chord_test/chord_"+str(count), "wb") as fp:
+                    pickle.dump(chords, fp)
+                sf.write(out_location + 'chunks_vocal_test/vocal_' + str(count)+'.wav', vocals_y, SR)
+            count+=1
+
+    def __len__(self):
+        return len(self.data)
+    
+    def __getitem__(self, index):
+        return self.data[index]
+    
+    @staticmethod
+    def predict(model, audio, chroma_req = True, chord_templates:dict = json.load(open('./chord_templates.json')), sr = SR, hop = HOP):
+        if chroma_req:
+            chroma = torch.Tensor(librosa.feature.chroma_cens(y=audio, sr = sr, hop_length=hop)).T.unsqueeze(0)
+        else:
+            chroma = audio
+        with torch.no_grad():
+            outputs = nn.functional.softmax(model(chroma), 1)[0]
+        min_val = 120
+        min_key = ''
+        for key, val in chord_templates.items():
+            out = torch.norm(torch.Tensor(val) - outputs)
+            if min_val >= out:
+                min_val = out
+                min_key = key
+        return min_key
+    
+    @staticmethod
+    def prediction(model, chroma, frame = 6):
+        stack = []
+        time = []
+        model.eval()
+        pred = MelChordDataset.predict(model, chroma[:frame, :].unsqueeze(0), False)
+        prev_pred = pred
+        dur = 1
+        main_sub = 0
+        for i in tqdm(range(frame, chroma.shape[0]-frame+1, frame)):
+            model.eval()
+            pred = MelChordDataset.predict(model, chroma[i:i+frame, :].unsqueeze(0), False)
+            if(pred != prev_pred):
+                if(dur>10):
+                    if(len(stack)==0):
+                        stack.append(prev_pred)
+                    elif(stack[-1]==prev_pred):
+                        dur = 0
+                        prev_pred = pred
+                        continue
+                    else:
+                        stack.append(prev_pred)
+                    if len(time)!=0:
+                        time.append((i)*HOP/SR - main_sub)
+                    else:
+                        main_sub = (i)*HOP/SR
+                        time.append(0.0)
+                dur = 0
+                prev_pred = pred
+            dur+=1
+        return stack, time
     
 class Predictor(nn.Module):
     def __init__(self, device = 'mps'):
